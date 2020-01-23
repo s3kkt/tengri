@@ -1,0 +1,5 @@
+.idea/
+.dockerignore
+**__pycache__
+*.pyc*
+*.cache
