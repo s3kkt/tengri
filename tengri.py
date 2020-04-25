@@ -36,7 +36,7 @@ async def metrics_handler(request):
         job_conf = job_spec['TaskGroups'][0]['Tasks'][0]['Env']
         image = job_spec['TaskGroups'][0]['Tasks'][0]['Config']['image']
         if url_suffix:
-            job_url = 'http://' + job["ID"] + url_suffix
+            job_url = 'http://' + job["ID"] + '.' + url_suffix
             version_url = job_url + '/version'
             app_version = await get_version(version_url)
         if not job_conf:
