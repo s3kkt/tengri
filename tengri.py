@@ -5,14 +5,19 @@ import re
 import aiohttp
 
 
-run_mode = os.getenv("MODE", 'local')
+run_mode = os.getenv("MODE")
 prefixes = os.getenv("VARIABLES_PREFIXES", '').split(',')
 restricted_prefixes = os.getenv("RESTRICTED_VARIABLES", '').split(',')
 url_suffix = os.getenv("URL_SUFFIX")
 
 
 async def hello(request):
-    return web.Response(text="Nomad jobs configuration extractor\n")
+    if run_mode == 'local':
+        return web.Response(text="Nomad jobs manual debug tool.\n")
+    elif run_mode == 'exporter':
+        return web.Response(text="Nomad jobs configuration extporter.\n")
+    else:
+        return web.Response(text="No mode selected or mode is unknown. Please, set MODE environment variable 'local' or 'exporter'!\n")
 
 
 async def get_version(url):
@@ -85,17 +90,20 @@ async def job_id_handler(job):
         env_args = " ".join(
             "-e {}=\'{}\'".format(key, value.replace("!", "\\!")) for key, value in job_config['env_vars'].items()
             )
-    return web.Response(text='docker run -it --rm' + ' ' + env_args + ' ' + job_config['image'])
+    return web.Response(text='docker run -d -it --rm' + ' ' + env_args + ' ' + job_config['image'])
 
 
 if run_mode == 'local':
     app = web.Application()
     app.add_routes([web.get('/', hello),
                     web.get('/{job}', job_id_handler)])
-elif run_mode == 'cloud':
+elif run_mode == 'exporter':
     app = web.Application()
     app.add_routes([web.get('/', hello),
                     web.get('/metrics', metrics_handler)])
+else:
+    app = web.Application()
+    app.add_routes([web.get('/', hello)])
 
 if __name__ == '__main__':
     web.run_app(app)
