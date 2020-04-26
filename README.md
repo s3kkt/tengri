@@ -1,3 +1,5 @@
+<p align="center"><img src="/static/logo20x20.png" height="200"/></p><br>
+
 > WARNING!!! Running this app may cause security issues . Please, read the documentation carefully before use.
 
 ### Clone and build docker image
@@ -20,14 +22,14 @@ docker build -t tengri:latest .
 | `RESTRICTED_VARIABLES` | False | Comma separated keywords. Variables, contains those keywords will be excluded from labels. This option has priority over`VARIABLES_PREFIXES` |
 | `URL_SUFFIX` | False | If your consul-template service generates dynamic server names, domain suffixes can be set to add `url` label, e.g.`url="http://job-name.example.com"`|
 
-Set `VARIABLES_PREFIXES` and `RESTRICTED_VARIABLES` is strongly recommended. If not, all of environmet variables from your Nomad jobs will be added to labels.
 
-### Tengri has 2 launch options defined by environment variable `MODE`:
+### Usage
+Tengri has 2 launch options defined by environment variable `MODE`:
 
 - Tiny tool to convert your nomad job name into `bash` command to run image manually in command line. Useful for fasten debug process of faulty runs.
 - Service, which returns `ENV` objects for each nomad job as labels in prometheus metrics format.
 
-### Local mode
+#### Local mode
 Run:
 ```bash
 docker run -d -it --rm --name tengri -p 8080:8080 \
@@ -35,11 +37,18 @@ docker run -d -it --rm --name tengri -p 8080:8080 \
 -e NOMAD_ADDR='https://login:password@nomad.example.com' \
 tengri:latest /bin/bash
 ```
-Output example:
+> Warning!!! Don't run Tengri in local mode as public webservice. It will show all of environment variables from your Nomad job, set as plain text, including secrets, tokens, e.t.c.
+
+Routes:
+- `/` - hello message for local mode
+- `/version` - current version of Tengri app
+- `/<job-name>` - replace `<job-name>` with desired nomad job and get command to run this job manually in command line
+
+_Output example:_
 ```bash
 $ docker run -it --rm -e var1=... -e var2=... -e varN=... image_name
 ```
-### Exporter mode
+#### Exporter mode
 ```bash
 docker run -it --rm --name tengri -p 8080:8080 \
 -e MODE='exporter' \
@@ -49,3 +58,9 @@ docker run -it --rm --name tengri -p 8080:8080 \
 -e URL_SUFFIX='example.com' \
 tengri:latest /bin/bash
 ```
+> Warning!!! Set `VARIABLES_PREFIXES` and `RESTRICTED_VARIABLES` is strongly recommended. If not, all of environment variables from your Nomad jobs will be added to labels.
+
+Routes:                                      
+- `/` - hello message for exporter mode                        
+- `/version` - current version of Tengri app 
+- `/metrics` - metrics path to collect them with Prometheus
