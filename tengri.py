@@ -17,7 +17,8 @@ async def hello(request):
     elif run_mode == 'exporter':
         return web.Response(text="Nomad jobs configuration extporter.\n")
     else:
-        return web.Response(text="No mode selected or mode is unknown. Please, set MODE environment variable 'local' or 'exporter'!\n")
+        return web.Response(text=f'No mode selected or mode is unknown.'
+                                 f' Please, set MODE environment variable "local" or "exporter"!\n')
 
 
 async def get_version(url):
@@ -49,7 +50,7 @@ async def metrics_handler(request):
                 'nomad_job_configuration{image=' + '\"' + image + '\"' + ', ' + 'url=' + '\"' + job_url + '\"} 1\n'
             )
         else:
-# TODO: generate labels lists at startup. Put labels to Redis and refresh every N seconds?
+            # TODO: generate labels lists at startup. Put labels to Redis and refresh every N seconds?
             all_labels = job_conf.keys()
             labels_list = []
             restricted_labels = []
