@@ -11,13 +11,25 @@ restricted_prefixes = os.getenv("RESTRICTED_VARIABLES", '').split(',')
 url_suffix = os.getenv("URL_SUFFIX")
 
 
-async def hello(request):
+async def hello(_):
     if run_mode == 'local':
         return web.Response(text="Nomad jobs manual debug tool.\n")
     elif run_mode == 'exporter':
         return web.Response(text="Nomad jobs configuration extporter.\n")
     else:
-        return web.Response(text="No mode selected or mode is unknown. Please, set MODE environment variable 'local' or 'exporter'!\n")
+        return web.Response(
+            text="No mode selected or mode is unknown. Please, set MODE environment variable 'local' or 'exporter'!\n"
+        )
+
+
+async def show_app_version(_):
+    version = 'None'
+    try:
+        import __version__ as app_version
+        version = str(app_version.__doc__)
+    except ImportError:
+        pass
+    return web.Response(text=version)
 
 
 async def get_version(url):
@@ -29,7 +41,7 @@ async def get_version(url):
                 return 'None'
 
 
-async def metrics_handler(request):
+async def metrics_handler(_):
     jobs_list = get_jobs()
     output_lines = []
     app_version = 'None'
@@ -95,15 +107,30 @@ async def job_id_handler(job):
 
 if run_mode == 'local':
     app = web.Application()
-    app.add_routes([web.get('/', hello),
-                    web.get('/{job}', job_id_handler)])
+    app.add_routes(
+        [
+            web.get('/', hello),
+            web.get('/version', show_app_version),
+            web.get('/{job}', job_id_handler)
+        ]
+    )
 elif run_mode == 'exporter':
     app = web.Application()
-    app.add_routes([web.get('/', hello),
-                    web.get('/metrics', metrics_handler)])
+    app.add_routes(
+        [
+            web.get('/', hello),
+            web.get('/version', show_app_version),
+            web.get('/metrics', metrics_handler)
+        ]
+    )
 else:
     app = web.Application()
-    app.add_routes([web.get('/', hello)])
+    app.add_routes(
+        [
+            web.get('/', hello),
+            web.get('/version', show_app_version)
+        ]
+    )
 
 if __name__ == '__main__':
     web.run_app(app)
